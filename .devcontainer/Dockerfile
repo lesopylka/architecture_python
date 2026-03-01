@@ -1,6 +1,6 @@
 # Используем официальный образ Python 3.11
 FROM python:3.11-slim
-COPY --from=openjdk:21-jdk-slim /usr/local/openjdk-21 /usr/local/openjdk-21
+COPY --from=eclipse-temurin:21-jdk-jammy /opt/java/openjdk /usr/local/openjdk-21
 COPY --from=structurizr/lite /usr/local/structurizr-lite.war /usr/local/
 
 ENV JAVA_HOME=/usr/local/openjdk-21

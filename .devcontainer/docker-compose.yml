@@ -97,7 +97,7 @@ services:
       - my_network
 
   kafka1:
-      image: 'bitnami/kafka:latest'
+      image: bitnamilegacy/kafka:4.0.0-debian-12-r10
       container_name: kafka1
       ports:
       #   - "2181:2181"
@@ -122,7 +122,7 @@ services:
         - my_network
     
   kafka2:
-      image: 'bitnami/kafka:latest'
+      image: bitnamilegacy/kafka:4.0.0-debian-12-r10
       container_name: kafka2
       # ports:
       #   - "2181:2181"
