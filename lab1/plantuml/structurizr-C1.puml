@@ -1,0 +1,46 @@
+@startuml
+title <size:24>System Context View: Социальная сеть</size>
+
+set separator none
+left to right direction
+skinparam ranksep 60
+skinparam nodesep 30
+hide stereotype
+
+<style>
+  root {
+    BackgroundColor: #ffffff;
+    FontColor: #444444;
+  }
+  // Element
+  .Element-RWxlbWVudA== {
+    BackgroundColor: #ffffff;
+    LineColor: #444444;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #444444;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Relationship
+  .Relationship-UmVsYXRpb25zaGlw {
+    LineThickness: 2;
+    LineStyle: 10-10;
+    LineColor: #444444;
+    FontColor: #444444;
+    FontSize: 24;
+  }
+</style>
+
+rectangle "==Гость\n<size:16>[Person]</size>" <<Element-RWxlbWVudA==>> as Гость
+rectangle "==Пользователь\n<size:16>[Person]</size>" <<Element-RWxlbWVudA==>> as Пользователь
+rectangle "==Сервис уведомлений (внешний)\n<size:16>[Software System]</size>\n\nExternal" <<Element-RWxlbWVudA==>> as Сервисуведомленийвнешний
+rectangle "==Социальная сеть\n<size:16>[Software System]</size>" <<Element-RWxlbWVudA==>> as Социальнаясеть
+
+Пользователь --> Социальнаясеть <<Relationship-UmVsYXRpb25zaGlw>> : "Использует\n<size:16>[HTTPS]</size>"
+Гость --> Социальнаясеть <<Relationship-UmVsYXRpb25zaGlw>> : "Использует\n<size:16>[HTTPS]</size>"
+Социальнаясеть --> Сервисуведомленийвнешний <<Relationship-UmVsYXRpb25zaGlw>> : "Notify (опц.)\n<size:16>[HTTPS]</size>"
+
+@enduml
