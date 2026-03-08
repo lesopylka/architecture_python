@@ -34,13 +34,13 @@ hide stereotype
   }
 </style>
 
-rectangle "==Гость\n<size:16>[Person]</size>\n\nНезарегистрированный пользователь. Может искать пользователей и просматривать доступную публичную информацию." <<Element-RWxlbWVudA==>> as Гость
+rectangle "==Гость\n<size:16>[Person]</size>\n\nНезарегистрированный пользователь. Может только видеть страницу регистрации / входа" <<Element-RWxlbWVudA==>> as Гость
 rectangle "==Пользователь\n<size:16>[Person]</size>\n\nЗарегистрированный пользователь. Публикует записи на стене и отправляет личные сообщения (PtP)." <<Element-RWxlbWVudA==>> as Пользователь
 rectangle "==Модератор\n<size:16>[Person]</size>\n\nСледит за соблюдением правил, просматривает жалобы и удаляет неподходящий контент." <<Element-RWxlbWVudA==>> as Модератор
 rectangle "==Сервис уведомлений\n<size:16>[Software System]</size>\n\nВнешний сервис отправки уведомлений (email/push/SMS)." <<Element-RWxlbWVudA==>> as Сервисуведомлений
 rectangle "==Социальная сеть\n<size:16>[Software System]</size>\n\nСоциальная сеть: регистрация и поиск пользователей; добавление и загрузка записей стены; отправка и получение PtP сообщений; модерация контента." <<Element-RWxlbWVudA==>> as Социальнаясеть
 
-Гость --> Социальнаясеть <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс\n<size:16>[HTTPS]</size>"
+Гость --> Социальнаясеть <<Relationship-UmVsYXRpb25zaGlw>> : "Открывает страницу входа и регистрации\n<size:16>[HTTPS]</size>"
 Пользователь --> Социальнаясеть <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс\n<size:16>[HTTPS]</size>"
 Модератор --> Социальнаясеть <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс модерации\n<size:16>[HTTPS]</size>"
 Социальнаясеть --> Сервисуведомлений <<Relationship-UmVsYXRpb25zaGlw>> : "Отправка уведомления получателю о новом сообщении\n<size:16>[HTTPS API]</size>"
