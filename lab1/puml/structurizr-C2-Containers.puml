@@ -1,5 +1,5 @@
 @startuml
-title <size:24>C2 – Диаграмма контейнеров: Социальная сеть</size>\n<size:24>Контейнеры отражают основные сценарии: User Service – создание/поиск пользователей; Wall Service – добавление/загрузка стены; Chat Service – отправка/получение PtP сообщений. Redis используется для кеширования чтения, внешний сервис – для отправки уведомлений.</size>
+title <size:24>C2 – Диаграмма контейнеров: Социальная сеть</size>\n<size:24>Контейнеры отражают ключевые подсистемы: аутентификация, управление пользователями, стена, PtP-сообщения и модерация. У каждого доменного сервиса собственное хранилище. Redis используется для ускорения операций чтения.</size>
 
 set separator none
 left to right direction
@@ -47,36 +47,48 @@ hide stereotype
 
 rectangle "==Гость\n<size:16>[Person]</size>\n\nНезарегистрированный пользователь. Может искать пользователей и просматривать доступную публичную информацию." <<Element-RWxlbWVudA==>> as Гость
 rectangle "==Пользователь\n<size:16>[Person]</size>\n\nЗарегистрированный пользователь. Публикует записи на стене и отправляет личные сообщения (PtP)." <<Element-RWxlbWVudA==>> as Пользователь
-rectangle "==Модератор\n<size:16>[Person]</size>\n\nСледит за соблюдением правил и может удалять неподходящий контент." <<Element-RWxlbWVudA==>> as Модератор
+rectangle "==Модератор\n<size:16>[Person]</size>\n\nСледит за соблюдением правил, просматривает жалобы и удаляет неподходящий контент." <<Element-RWxlbWVudA==>> as Модератор
 rectangle "==Сервис уведомлений\n<size:16>[Software System]</size>\n\nВнешний сервис отправки уведомлений (email/push/SMS)." <<Element-RWxlbWVudA==>> as Сервисуведомлений
 
 rectangle "Социальная сеть\n<size:16>[Software System]</size>" <<Boundary-0KHQvtGG0LjQsNC70YzQvdCw0Y8g0YHQtdGC0Yw=>> {
-  rectangle "==Wall Service\n<size:16>[Container: FastAPI]</size>\n\nСтена: добавление записи и загрузка стены пользователя." <<Element-RWxlbWVudA==>> as Социальнаясеть.WallService
-  rectangle "==Chat Service\n<size:16>[Container: FastAPI]</size>\n\nЧат PtP: отправка сообщения и получение списка сообщений пользователя." <<Element-RWxlbWVudA==>> as Социальнаясеть.ChatService
-  rectangle "==PostgreSQL\n<size:16>[Container: PostgreSQL]</size>\n\nХранит пользователей и записи стены." <<Element-RWxlbWVudA==>> as Социальнаясеть.PostgreSQL
-  rectangle "==MongoDB\n<size:16>[Container: MongoDB]</size>\n\nХранит PtP сообщения." <<Element-RWxlbWVudA==>> as Социальнаясеть.MongoDB
-  rectangle "==Redis\n<size:16>[Container: Redis]</size>\n\nКеширование часто запрашиваемых данных (поиск/стена/последние сообщения)." <<Element-RWxlbWVudA==>> as Социальнаясеть.Redis
+  rectangle "==User Service\n<size:16>[Container: FastAPI]</size>\n\nПользователи: профиль, создание и поиск пользователей." <<Element-RWxlbWVudA==>> as Социальнаясеть.UserService
+  rectangle "==Wall Service\n<size:16>[Container: FastAPI]</size>\n\nСтена: добавление записи, загрузка записей пользователя, удаление записей." <<Element-RWxlbWVudA==>> as Социальнаясеть.WallService
+  rectangle "==Chat Service\n<size:16>[Container: FastAPI]</size>\n\nЧат PtP: отправка сообщения, получение списка диалогов и истории сообщений." <<Element-RWxlbWVudA==>> as Социальнаясеть.ChatService
+  rectangle "==Moderation Service\n<size:16>[Container: FastAPI]</size>\n\nМодерация контента: обработка жалоб, удаление неподходящих записей и сообщений." <<Element-RWxlbWVudA==>> as Социальнаясеть.ModerationService
+  rectangle "==Auth DB\n<size:16>[Container: PostgreSQL]</size>\n\nХранит учетные данные, хеши паролей, токены/сессии." <<Element-RWxlbWVudA==>> as Социальнаясеть.AuthDB
+  rectangle "==User DB\n<size:16>[Container: PostgreSQL]</size>\n\nХранит профили пользователей." <<Element-RWxlbWVudA==>> as Социальнаясеть.UserDB
+  rectangle "==Wall DB\n<size:16>[Container: PostgreSQL]</size>\n\nХранит записи стены." <<Element-RWxlbWVudA==>> as Социальнаясеть.WallDB
+  rectangle "==Chat DB\n<size:16>[Container: MongoDB]</size>\n\nХранит PtP сообщения." <<Element-RWxlbWVudA==>> as Социальнаясеть.ChatDB
+  rectangle "==Redis\n<size:16>[Container: Redis]</size>\n\nКеширование часто запрашиваемых данных: поиск пользователей, стена, последние сообщения." <<Element-RWxlbWVudA==>> as Социальнаясеть.Redis
   rectangle "==Веб-клиент\n<size:16>[Container: Web UI]</size>\n\nИнтерфейс в браузере." <<Element-RWxlbWVudA==>> as Социальнаясеть.Вебклиент
   rectangle "==Мобильный клиент\n<size:16>[Container: Mobile UI]</size>\n\nИнтерфейс на телефоне." <<Element-RWxlbWVudA==>> as Социальнаясеть.Мобильныйклиент
-  rectangle "==API Gateway\n<size:16>[Container: Nginx (reverse proxy)]</size>\n\nЕдиная точка входа для клиентов. Маршрутизирует запросы по сервисам." <<Element-RWxlbWVudA==>> as Социальнаясеть.APIGateway
-  rectangle "==User Service\n<size:16>[Container: FastAPI]</size>\n\nПользователи: создание и поиск." <<Element-RWxlbWVudA==>> as Социальнаясеть.UserService
+  rectangle "==API Gateway\n<size:16>[Container: Nginx / Reverse Proxy]</size>\n\nЕдиная точка входа: маршрутизация запросов, базовая фильтрация и проксирование к внутренним сервисам." <<Element-RWxlbWVudA==>> as Социальнаясеть.APIGateway
+  rectangle "==Auth Service\n<size:16>[Container: FastAPI]</size>\n\nРегистрация, вход, проверка учетных данных, выдача токенов доступа." <<Element-RWxlbWVudA==>> as Социальнаясеть.AuthService
 }
 
 Гость --> Социальнаясеть.Вебклиент <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс\n<size:16>[HTTPS]</size>"
+Гость --> Социальнаясеть.Мобильныйклиент <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс\n<size:16>[HTTPS]</size>"
 Пользователь --> Социальнаясеть.Вебклиент <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс\n<size:16>[HTTPS]</size>"
 Пользователь --> Социальнаясеть.Мобильныйклиент <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс\n<size:16>[HTTPS]</size>"
-Модератор --> Социальнаясеть.Вебклиент <<Relationship-UmVsYXRpb25zaGlw>> : "Проверяет/модерирует контент\n<size:16>[HTTPS]</size>"
+Модератор --> Социальнаясеть.Вебклиент <<Relationship-UmVsYXRpb25zaGlw>> : "Использует интерфейс модерации\n<size:16>[HTTPS]</size>"
 Социальнаясеть.Вебклиент --> Социальнаясеть.APIGateway <<Relationship-UmVsYXRpb25zaGlw>> : "Вызывает API\n<size:16>[HTTPS/REST]</size>"
 Социальнаясеть.Мобильныйклиент --> Социальнаясеть.APIGateway <<Relationship-UmVsYXRpb25zaGlw>> : "Вызывает API\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.APIGateway --> Социальнаясеть.AuthService <<Relationship-UmVsYXRpb25zaGlw>> : "API аутентификации (/auth/*)\n<size:16>[HTTPS/REST]</size>"
 Социальнаясеть.APIGateway --> Социальнаясеть.UserService <<Relationship-UmVsYXRpb25zaGlw>> : "API пользователей (/users/*)\n<size:16>[HTTPS/REST]</size>"
-Социальнаясеть.APIGateway --> Социальнаясеть.WallService <<Relationship-UmVsYXRpb25zaGlw>> : "API стены (/walls/*)\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.APIGateway --> Социальнаясеть.WallService <<Relationship-UmVsYXRpb25zaGlw>> : "API стены (/posts/*)\n<size:16>[HTTPS/REST]</size>"
 Социальнаясеть.APIGateway --> Социальнаясеть.ChatService <<Relationship-UmVsYXRpb25zaGlw>> : "API сообщений (/messages/*)\n<size:16>[HTTPS/REST]</size>"
-Социальнаясеть.UserService --> Социальнаясеть.PostgreSQL <<Relationship-UmVsYXRpb25zaGlw>> : "Данные: Пользователь (users)\n<size:16>[SQL]</size>"
-Социальнаясеть.WallService --> Социальнаясеть.PostgreSQL <<Relationship-UmVsYXRpb25zaGlw>> : "Данные: Стена (wall_posts)\n<size:16>[SQL]</size>"
-Социальнаясеть.ChatService --> Социальнаясеть.MongoDB <<Relationship-UmVsYXRpb25zaGlw>> : "Данные: Сообщения PtP (messages)\n<size:16>[MongoDB]</size>"
+Социальнаясеть.APIGateway --> Социальнаясеть.ModerationService <<Relationship-UmVsYXRpb25zaGlw>> : "API модерации (/moderation/*)\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.AuthService --> Социальнаясеть.AuthDB <<Relationship-UmVsYXRpb25zaGlw>> : "Данные аутентификации\n<size:16>[SQL]</size>"
+Социальнаясеть.UserService --> Социальнаясеть.UserDB <<Relationship-UmVsYXRpb25zaGlw>> : "Данные профилей пользователей\n<size:16>[SQL]</size>"
+Социальнаясеть.WallService --> Социальнаясеть.WallDB <<Relationship-UmVsYXRpb25zaGlw>> : "Данные записей стены\n<size:16>[SQL]</size>"
+Социальнаясеть.ChatService --> Социальнаясеть.ChatDB <<Relationship-UmVsYXRpb25zaGlw>> : "Данные PtP сообщений\n<size:16>[MongoDB]</size>"
 Социальнаясеть.UserService --> Социальнаясеть.Redis <<Relationship-UmVsYXRpb25zaGlw>> : "Кеширование результатов поиска пользователей\n<size:16>[RESP]</size>"
 Социальнаясеть.WallService --> Социальнаясеть.Redis <<Relationship-UmVsYXRpb25zaGlw>> : "Кеширование загрузки стены\n<size:16>[RESP]</size>"
 Социальнаясеть.ChatService --> Социальнаясеть.Redis <<Relationship-UmVsYXRpb25zaGlw>> : "Кеширование последних сообщений\n<size:16>[RESP]</size>"
+Социальнаясеть.WallService --> Социальнаясеть.UserService <<Relationship-UmVsYXRpb25zaGlw>> : "Проверка существования автора/владельца стены\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.ChatService --> Социальнаясеть.UserService <<Relationship-UmVsYXRpb25zaGlw>> : "Проверка существования отправителя и получателя\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.ModerationService --> Социальнаясеть.WallService <<Relationship-UmVsYXRpb25zaGlw>> : "Удаление/скрытие записи стены\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.ModerationService --> Социальнаясеть.ChatService <<Relationship-UmVsYXRpb25zaGlw>> : "Удаление/скрытие сообщения\n<size:16>[HTTPS/REST]</size>"
 Социальнаясеть.ChatService --> Сервисуведомлений <<Relationship-UmVsYXRpb25zaGlw>> : "Отправка уведомления получателю о новом сообщении\n<size:16>[HTTPS API]</size>"
 
 @enduml

@@ -1,5 +1,5 @@
 @startuml
-title <size:24>D1 – Динамика: отправка PtP сообщения пользователю</size>\n<size:24>Сценарий PtP: клиент отправляет сообщение через API Gateway; Chat Service сохраняет сообщение в MongoDB, обновляет кеш последних сообщений в Redis и отправляет уведомление получателю через внешний сервис.</size>
+title <size:24>D1 – Динамика: отправка PtP сообщения пользователю</size>\n<size:24>Пользователь отправляет сообщение через мобильный клиент. Chat Service проверяет участников, сохраняет сообщение, обновляет кеш последних сообщений и отправляет уведомление получателю.</size>
 
 set separator none
 left to right direction
@@ -46,11 +46,12 @@ hide stereotype
 </style>
 
 rectangle "Социальная сеть\n<size:16>[Software System]</size>" <<Boundary-0KHQvtGG0LjQsNC70YzQvdCw0Y8g0YHQtdGC0Yw=>> {
-  rectangle "==Chat Service\n<size:16>[Container: FastAPI]</size>\n\nЧат PtP: отправка сообщения и получение списка сообщений пользователя." <<Element-RWxlbWVudA==>> as Социальнаясеть.ChatService
-  rectangle "==MongoDB\n<size:16>[Container: MongoDB]</size>\n\nХранит PtP сообщения." <<Element-RWxlbWVudA==>> as Социальнаясеть.MongoDB
-  rectangle "==Redis\n<size:16>[Container: Redis]</size>\n\nКеширование часто запрашиваемых данных (поиск/стена/последние сообщения)." <<Element-RWxlbWVudA==>> as Социальнаясеть.Redis
+  rectangle "==User Service\n<size:16>[Container: FastAPI]</size>\n\nПользователи: профиль, создание и поиск пользователей." <<Element-RWxlbWVudA==>> as Социальнаясеть.UserService
+  rectangle "==Chat Service\n<size:16>[Container: FastAPI]</size>\n\nЧат PtP: отправка сообщения, получение списка диалогов и истории сообщений." <<Element-RWxlbWVudA==>> as Социальнаясеть.ChatService
+  rectangle "==Chat DB\n<size:16>[Container: MongoDB]</size>\n\nХранит PtP сообщения." <<Element-RWxlbWVudA==>> as Социальнаясеть.ChatDB
+  rectangle "==Redis\n<size:16>[Container: Redis]</size>\n\nКеширование часто запрашиваемых данных: поиск пользователей, стена, последние сообщения." <<Element-RWxlbWVudA==>> as Социальнаясеть.Redis
   rectangle "==Мобильный клиент\n<size:16>[Container: Mobile UI]</size>\n\nИнтерфейс на телефоне." <<Element-RWxlbWVudA==>> as Социальнаясеть.Мобильныйклиент
-  rectangle "==API Gateway\n<size:16>[Container: Nginx (reverse proxy)]</size>\n\nЕдиная точка входа для клиентов. Маршрутизирует запросы по сервисам." <<Element-RWxlbWVudA==>> as Социальнаясеть.APIGateway
+  rectangle "==API Gateway\n<size:16>[Container: Nginx / Reverse Proxy]</size>\n\nЕдиная точка входа: маршрутизация запросов, базовая фильтрация и проксирование к внутренним сервисам." <<Element-RWxlbWVudA==>> as Социальнаясеть.APIGateway
 }
 
 rectangle "==Пользователь\n<size:16>[Person]</size>\n\nЗарегистрированный пользователь. Публикует записи на стене и отправляет личные сообщения (PtP)." <<Element-RWxlbWVudA==>> as Пользователь
@@ -59,10 +60,12 @@ rectangle "==Сервис уведомлений\n<size:16>[Software System]</si
 Пользователь --> Социальнаясеть.Мобильныйклиент <<Relationship-UmVsYXRpb25zaGlw>> : "1: Пишет сообщение и нажимает «Отправить»\n<size:16>[HTTPS]</size>"
 Социальнаясеть.Мобильныйклиент --> Социальнаясеть.APIGateway <<Relationship-UmVsYXRpb25zaGlw>> : "2: POST /messages {fromUserId, toUserId, text}\n<size:16>[HTTPS/REST]</size>"
 Социальнаясеть.APIGateway --> Социальнаясеть.ChatService <<Relationship-UmVsYXRpb25zaGlw>> : "3: Маршрутизация запроса /messages\n<size:16>[HTTPS/REST]</size>"
-Социальнаясеть.ChatService --> Социальнаясеть.MongoDB <<Relationship-UmVsYXRpb25zaGlw>> : "4: INSERT messages (сохранение сообщения)\n<size:16>[MongoDB]</size>"
-Социальнаясеть.ChatService --> Социальнаясеть.Redis <<Relationship-UmVsYXRpb25zaGlw>> : "5: UPDATE cache (последние сообщения)\n<size:16>[RESP]</size>"
-Социальнаясеть.ChatService --> Сервисуведомлений <<Relationship-UmVsYXRpb25zaGlw>> : "6: Notify(toUserId)\n<size:16>[HTTPS API]</size>"
-Социальнаясеть.APIGateway <-- Социальнаясеть.ChatService <<Relationship-UmVsYXRpb25zaGlw>> : "7: 200 OK {messageId}\n<size:16>[HTTPS/REST]</size>"
-Социальнаясеть.Мобильныйклиент <-- Социальнаясеть.APIGateway <<Relationship-UmVsYXRpb25zaGlw>> : "8: 200 OK {messageId}\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.ChatService --> Социальнаясеть.UserService <<Relationship-UmVsYXRpb25zaGlw>> : "4: Проверка существования отправителя и получателя\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.ChatService <-- Социальнаясеть.UserService <<Relationship-UmVsYXRpb25zaGlw>> : "5: OK\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.ChatService --> Социальнаясеть.ChatDB <<Relationship-UmVsYXRpb25zaGlw>> : "6: INSERT message\n<size:16>[MongoDB]</size>"
+Социальнаясеть.ChatService --> Социальнаясеть.Redis <<Relationship-UmVsYXRpb25zaGlw>> : "7: UPDATE cache (последние сообщения)\n<size:16>[RESP]</size>"
+Социальнаясеть.ChatService --> Сервисуведомлений <<Relationship-UmVsYXRpb25zaGlw>> : "8: Notify(toUserId)\n<size:16>[HTTPS API]</size>"
+Социальнаясеть.APIGateway <-- Социальнаясеть.ChatService <<Relationship-UmVsYXRpb25zaGlw>> : "9: 200 OK {messageId}\n<size:16>[HTTPS/REST]</size>"
+Социальнаясеть.Мобильныйклиент <-- Социальнаясеть.APIGateway <<Relationship-UmVsYXRpb25zaGlw>> : "10: 200 OK {messageId}\n<size:16>[HTTPS/REST]</size>"
 
 @enduml
