@@ -1,0 +1,34 @@
+components_manager:
+  task_processors:
+    main-task-processor:
+      worker_threads: 4
+
+  default_task_processor: main-task-processor
+
+  components:
+    server:
+      listener:
+        port: 8000
+        task_processor: main-task-processor
+
+    logging:
+      loggers:
+        default:
+          file_path: '@stderr'
+          level: info
+
+    handler-auth-register:
+      path: /auth/register
+      method: POST
+
+    handler-users:
+      path: /users/{login}
+      method: GET
+
+    handler-posts:
+      path: /posts
+      method: POST
+
+    handler-messages:
+      path: /messages
+      method: POST
