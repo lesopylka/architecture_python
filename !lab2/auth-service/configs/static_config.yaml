@@ -39,6 +39,11 @@ components_manager:
             method: POST
             task_processor: main-task-processor
 
+        handler-ping:
+            path: /ping
+            method: GET
+            task_processor: main-task-processor
+
         handler-auth:
             path: /auth
             method: POST

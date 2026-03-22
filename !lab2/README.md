@@ -7,13 +7,19 @@
   - [Задание](#задание)
   - [Результат](#результат)
   - [Вариант 1  – Социальная сеть](#вариант-1---социальная-сеть)
+  - [Архитектура](#архитектура)
+      - [POST /auth:](#post-auth)
+      - [POST /users](#post-users)
+      - [GET /users](#get-users)
+      - [POST /posts](#post-posts)
+      - [GET /posts?user\_id=1](#get-postsuser_id1)
+      - [POST /messages](#post-messages)
+      - [GET /messages?user\_id=1](#get-messagesuser_id1)
+  - [Тестирование](#тестирование)
+  - [HTTP статус-коды](#http-статус-коды)
+  - [OpenAPI](#openapi)
+  - [Хранилище](#хранилище)
   - [Запуск](#запуск)
-    - [Локально](#локально)
-    - [Docker](#docker)
-    - [Swagger UI](#swagger-ui)
-  - [Примеры](#примеры)
-    - [Регистрация](#регистрация)
-    - [Добавление поста](#добавление-поста)
 
 ## Задание
 Выберите нужный вариант из файла `homework_variants.pdf` (варианты 1-24) и
@@ -66,23 +72,183 @@ Postman или unit-тесты)
 - Отправка сообщения пользователю
 - Получение списка сообщения для пользователя
 
-## Запуск
+## Архитектура
 
-### Локально
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+Система состоит из 4 микросервисов:
+
+| Сервис | Порт | Назначение |
+|-------|------|-----------|
+| auth-service | 8081 | Аутентификация |
+| user-service | 8082 | Пользователи |
+| wall-service | 8083 | Посты |
+| chat-service | 8084 | Сообщения |
+
+Каждый сервис запускается отдельно.
+
+В аутентификации используется простая токен-аутентификация `Authorization: Bearer 123`
+
+#### POST /auth:
+
+Response:
+```
+{
+  "token": "123"
+}
 ```
 
-###  Docker
-docker-compose up --build
+#### POST /users
 
-### Swagger UI
-http://localhost:8000/docs
+Request:
+```
+{
+  "login": "alice"
+}
+```
 
-##  Примеры
- 
-### Регистрация
+Response:
+```
+{
+  "id": 1,
+  "login": "alice"
+}
+```
+#### GET /users
+
+Response:
+```
+[
+  {
+    "id": 1,
+    "login": "alice"
+  }
+]
+```
+Поиск по логину: `GET /users?login=alice`
 
 
-### Добавление поста
+Поиск по маске: `GET /users?name=ali`
+
+#### POST /posts
+
+Headers:
+```
+Authorization: Bearer 123
+```
+
+Request:
+```
+{
+  "user_id": 1,
+  "content": "hello"
+}
+```
+
+Response:
+```
+{
+  "id": 1
+}
+```
+#### GET /posts?user_id=1
+
+Response:
+```
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "content": "hello"
+  }
+]
+```
+
+#### POST /messages
+
+Headers:
+```
+Authorization: Bearer 123
+```
+
+Request:
+```
+{
+  "from": 1,
+  "to": 2,
+  "text": "hi"
+}
+```
+
+Response:
+```
+{
+  "id": 1
+}
+```
+#### GET /messages?user_id=1
+
+Response:
+```
+[
+  {
+    "id": 1,
+    "from": 1,
+    "to": 2,
+    "text": "hi"
+  }
+]
+```
+## Тестирование
+
+Тестирование выполняется с помощью bash-скриптов:
+```
+./auth.sh
+./users.sh
+./posts.sh
+./messages.sh
+```
+
+## HTTP статус-коды
+
+
+| Endpoint   | Метод | Статус | Описание |
+|------------|------|--------|----------|
+| /auth      | POST | 200 OK | Успешная аутентификация |
+| /auth      | POST | 405 Method Not Allowed | Неверный метод |
+| /users     | POST | 201 Created | Пользователь создан |
+| /users     | POST | 400 Bad Request | Неверные данные |
+| /users     | GET  | 200 OK | Получение списка пользователей |
+| /posts     | POST | 201 Created | Пост создан |
+| /posts     | POST | 401 Unauthorized | Нет или неверный токен |
+| /posts     | POST | 400 Bad Request | Ошибка в данных |
+| /posts     | GET  | 200 OK | Получение постов |
+| /posts     | GET  | 401 Unauthorized | Нет или неверный токен |
+| /messages  | POST | 201 Created | Сообщение отправлено |
+| /messages  | POST | 401 Unauthorized | Нет или неверный токен |
+| /messages  | POST | 400 Bad Request | Ошибка в данных |
+| /messages  | GET  | 200 OK | Получение сообщений |
+| /messages  | GET  | 401 Unauthorized | Нет или неверный токен |
+## OpenAPI
+
+Файл спецификации: [openapi.yaml](openapi.yaml)
+
+## Хранилище
+
+Используется in-memory хранение:
+
+- users
+- posts
+- messages
+
+## Запуск
+
+Собрать сервис:
+
+```bash
+cd <service>/build
+cmake ..
+ninja
+./auth_service --config ../configs/static_config.yaml
+./user_service --config ../configs/static_config.yaml
+./wall_service --config ../configs/static_config.yaml
+./chat_service --config ../configs/static_config.yaml
+```

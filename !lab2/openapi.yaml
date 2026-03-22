@@ -1,0 +1,133 @@
+openapi: 3.0.0
+info:
+  title: Social Network API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost
+
+paths:
+
+  /auth:
+    post:
+      summary: Авторизация
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                token: "123"
+
+  /users:
+    post:
+      summary: Создать пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              login: "alice"
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+
+    get:
+      summary: Получить пользователей
+      parameters:
+        - name: login
+          in: query
+          schema:
+            type: string
+        - name: name
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+
+  /posts:
+    post:
+      summary: Создать пост
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              user_id: 1
+              content: "hello"
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+
+    get:
+      summary: Получить посты
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+
+  /messages:
+    post:
+      summary: Отправить сообщение
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              from: 1
+              to: 2
+              text: "hi"
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+
+    get:
+      summary: Получить сообщения
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
